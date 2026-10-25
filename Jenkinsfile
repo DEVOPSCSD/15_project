@@ -2,10 +2,6 @@
 pipeline {
     agent any
 
-    options {
-        timestamps()
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -22,7 +18,6 @@ pipeline {
         stage('Start Application') {
             steps {
                 bat 'docker compose up -d'
-
                 bat 'powershell -NoProfile -Command "$deadline=(Get-Date).AddMinutes(2); do { try { $r=Invoke-WebRequest -UseBasicParsing http://localhost:8081; if ($r.StatusCode -eq 200) { exit 0 } } catch {}; Start-Sleep -Seconds 3 } while ((Get-Date) -lt $deadline); exit 1"'
             }
         }
