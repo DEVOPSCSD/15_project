@@ -2,37 +2,36 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
+    environment {
+        DOCKER = 'C:\\Users\\srisailam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+    }
 
+    stages {
         stage('Build Docker Images') {
             steps {
-                bat 'docker compose build'
+                bat '"%DOCKER%" compose build'
             }
         }
 
         stage('Start Application') {
             steps {
-                bat 'docker compose up -d'
+                bat '"%DOCKER%" compose up -d'
+
                 bat 'powershell -NoProfile -Command "$deadline=(Get-Date).AddMinutes(2); do { try { $r=Invoke-WebRequest -UseBasicParsing http://localhost:8081; if ($r.StatusCode -eq 200) { exit 0 } } catch {}; Start-Sleep -Seconds 3 } while ((Get-Date) -lt $deadline); exit 1"'
             }
         }
 
         stage('Selenium UI Tests') {
             steps {
-                bat 'docker compose --profile test run --rm selenium-tests'
+                bat '"%DOCKER%" compose --profile test run --rm selenium-tests'
             }
         }
     }
 
     post {
         always {
-            bat 'docker compose ps'
-            bat 'docker compose logs --no-color --tail=100 backend'
+            bat '"%DOCKER%" compose ps'
+            bat '"%DOCKER%" compose logs --no-color --tail=100 backend'
         }
 
         success {
