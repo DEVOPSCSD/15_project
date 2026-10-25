@@ -28,9 +28,17 @@ function formatProduct(p) {
 
 // Health check
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     message: "DevShop API is running without MongoDB",
     status: "OK",
+  });
+});
+
+// Docker health-check endpoint
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "DevShop API is healthy",
   });
 });
 
@@ -42,10 +50,10 @@ app.get("/api/products", async (req, res) => {
     const skip = Math.max(Number(req.query.skip) || 0, 0);
 
     const requestedLimit = Number(req.query.limit);
-    const limit = Number.isFinite(requestedLimit) &&
-      requestedLimit > 0
-      ? Math.min(Math.floor(requestedLimit), 100)
-      : 0;
+    const limit =
+      Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(Math.floor(requestedLimit), 100)
+        : 0;
 
     let url;
 
@@ -60,7 +68,6 @@ app.get("/api/products", async (req, res) => {
       url = new URL(API);
     }
 
-    // DummyJSON supports limit=0 to return the complete catalog.
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("skip", String(skip));
 
@@ -139,8 +146,7 @@ app.get("/api/products/:id", async (req, res) => {
   }
 });
 
-// Demo order storage.
-// Orders remain available until the backend process restarts.
+// Demo order storage
 const orders = [];
 
 // Place a demo order
@@ -154,7 +160,6 @@ app.post("/api/orders", (req, res) => {
       });
     }
 
-    // Validate every order item
     const validatedItems = items.map((item) => {
       const productId = String(item.productId || "");
       const name = String(item.name || "").trim();
@@ -181,12 +186,13 @@ app.post("/api/orders", (req, res) => {
       };
     });
 
-    const total = Math.round(
-      validatedItems.reduce(
-        (sum, item) => sum + item.subtotal,
-        0
-      ) * 100
-    ) / 100;
+    const total =
+      Math.round(
+        validatedItems.reduce(
+          (sum, item) => sum + item.subtotal,
+          0
+        ) * 100
+      ) / 100;
 
     const orderReference = `DS-${Date.now()}`;
 
